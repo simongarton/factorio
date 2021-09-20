@@ -1,10 +1,12 @@
 package com.simongarton.factorio.model;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
 @Data
 public class Ingredient {
 
-    private String id;
+    @SerializedName(value = "id")
+    private ItemType itemType;
     private double amount;
 }

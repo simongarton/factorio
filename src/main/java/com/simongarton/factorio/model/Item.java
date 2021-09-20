@@ -6,7 +6,8 @@ import lombok.Data;
 @Data
 public class Item {
 
-    private ItemType id;
+    @SerializedName(value = "id")
+    private ItemType itemType;
     private String name;
     private String type;
     @SerializedName(value = "wiki_link")

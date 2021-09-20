@@ -3,17 +3,14 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.simongarton.factorio.Planner;
-import com.simongarton.factorio.exceptions.RecipeNotFoundException;
 import com.simongarton.factorio.model.Item;
 import com.simongarton.factorio.model.ItemType;
-import com.simongarton.factorio.model.RecursiveRecipe;
-import com.simongarton.factorio.model.Request;
+import com.simongarton.factorio.model.Plan;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Optional;
 
 public class Main {
 
@@ -21,33 +18,13 @@ public class Main {
 
         final Planner planner = new Planner();
 
-        Request oneCircuitRequest = planner.planRequest(ItemType.ELECTRONIC_CIRCUIT, 1);
-        planner.describe(oneCircuitRequest);
+        // I want to make X units of Y (in one second, at present everything assumes one second) so I need a plan
+        // That plan will have some items and quantities it needs, and will probably then list the plans needed to make each of those.
+        Plan oneCircuitPlan = planner.plan(ItemType.ELECTRONIC_CIRCUIT, 1);
+        planner.describe(oneCircuitPlan);
 
-        Request twoCircuitsRequest = planner.planRequest(ItemType.ELECTRONIC_CIRCUIT, 2);
-        planner.describe(twoCircuitsRequest);
-
-//        // display as graph ?`
-//        final Optional<RecursiveRecipe> recursiveRecipe = planner.getRecursiveRecipe(ItemType.ELECTRONIC_CIRCUIT, 1);
-//        // System.out.println(recursiveRecipe.get());
-//        if (recursiveRecipe.isPresent()) {
-////            planner.displayAsTree(recursiveRecipe.get(), "");
-////            planner.listTotalItems(recursiveRecipe.get());
-//            planner.describe(recursiveRecipe.get());
-//        } else {
-//            throw new RecipeNotFoundException("can't find recipe");
-//        }
-//
-//        // display as graph ?
-//        final Optional<RecursiveRecipe> recursiveRecipe2 = planner.getRecursiveRecipe(ItemType.ELECTRONIC_CIRCUIT, 2);
-//        // System.out.println(recursiveRecipe.get());
-//        if (recursiveRecipe2.isPresent()) {
-////            planner.displayAsTree(recursiveRecipe.get(), "");
-////            planner.listTotalItems(recursiveRecipe.get());
-//            planner.describe(recursiveRecipe2.get());
-//        } else {
-//            throw new RecipeNotFoundException("can't find recipe");
-//        }
+        Plan twoCircuitsPlan = planner.plan(ItemType.ELECTRONIC_CIRCUIT, 2);
+        planner.describe(twoCircuitsPlan);
     }
 
     private void loadAndAnalyseRecipes() {
@@ -60,16 +37,16 @@ public class Main {
         final List<Item> data = gson.fromJson(reader, ITEM_TYPE);
 
         System.out.println(data.get(0));
-//        System.out.println(data);
-//        produceItemEnumerator(data);
-//        data.stream().forEach(i -> System.out.println(i.getId().getId()));
+        System.out.println(data);
+        produceItemEnumerator(data);
+        data.stream().forEach(i -> System.out.println(i.getItemType().getId()));
     }
 
     private void produceItemEnumerator(final List<Item> items) {
         for (final Item item : items) {
-            System.out.println("@SerializedName(value = \"" + item.getId() + "\")");
-            System.out.println(item.getId().getId().replace("-", "_")
-                    + "(\"" + item.getId() + "\", \"" + item.getName() + "\"),");
+            System.out.println("@SerializedName(value = \"" + item.getItemType() + "\")");
+            System.out.println(item.getItemType().getId().replace("-", "_")
+                    + "(\"" + item.getItemType() + "\", \"" + item.getName() + "\"),");
         }
     }
 }

@@ -1,13 +1,15 @@
 package com.simongarton.factorio;
 
 import com.simongarton.factorio.exceptions.RecipeNotFoundException;
-import com.simongarton.factorio.model.*;
+import com.simongarton.factorio.model.Item;
+import com.simongarton.factorio.model.ItemType;
+import com.simongarton.factorio.model.Plan;
+import com.simongarton.factorio.model.Recipe;
 import com.simongarton.factorio.model.makers.*;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 public class Planner {
 
@@ -27,97 +29,43 @@ public class Planner {
     );
 
     public Planner() {
+        // this is the lookup for the items
         this.items = ItemLoader.getItems();
+        // these are for the overall recipe
         this.neededQuantities = new HashMap<>();
     }
 
-    public Recipe getRecipe(final ItemType itemType) {
-        return this.items.stream().filter(i -> i.getId().equals(itemType)).map(Item::getRecipe).findFirst().orElseThrow(() -> new RecipeNotFoundException(itemType.getId()));
+    public Plan plan(final ItemType itemType, final double quantity) {
+        // how do I make this item ? I need to find a recipe. This first call gets a generic recipe with no details
+        // and I don't think I actually use it, I just need to show it exists. TODO
+        final Item item = this.items.stream()
+                .filter(i -> i.getItemType().equals(itemType))
+                .findFirst().
+                orElseThrow(() -> new RecipeNotFoundException(itemType.getId()));
+        // now I turn that into a recipe. I may extend here to restrict to different makers
+        // The recipe is a standard "one-iteration" of the maker, and will normally - but not always - produce one item
+        final Recipe recipe = item.getRecipe();
+        // this isn't in the JSON
+        recipe.setItemType(itemType);
+        recipe.setMakeWith(this.getMaker(itemType));
+        return this.buildPlan(itemType, recipe, quantity);
     }
 
-    public Optional<RecursiveRecipe> getRecursiveRecipe(final ItemType itemType, final double need) {
-        final RecursiveRecipe recursiveRecipe = new RecursiveRecipe();
-        recursiveRecipe.setItem(itemType);
-        recursiveRecipe.setMakeWith(this.getMaker(itemType));
-        final Recipe topRecipe = this.items.stream().filter(i -> i.getId().equals(itemType)).map(Item::getRecipe).findFirst().orElseThrow(() -> new RecipeNotFoundException(itemType.getId()));
-        recursiveRecipe.setNeed(need);
-        recursiveRecipe.setIngredients(topRecipe.getIngredients());
-        if (topRecipe.getTime() == null) {
-            return Optional.of(recursiveRecipe);
-        }
-        recursiveRecipe.setTime(topRecipe.getTime());
-        recursiveRecipe.setYield(topRecipe.getYield());
-        for (final Ingredient ingredient : topRecipe.getIngredients()) {
-            final ItemType ingredientType = ItemType.from(ingredient.getId());
-            final Optional<RecursiveRecipe> subRecipe = this.getRecursiveRecipe(ingredientType, ingredient.getAmount());
-            subRecipe.ifPresent(recipe -> recursiveRecipe.getRecipes().add(recipe));
-        }
-        return Optional.of(recursiveRecipe);
+    private Plan buildPlan(ItemType itemType, Recipe recipe, double quantity) {
+        final Plan plan = new Plan(itemType, quantity);
+        plan.setRecipe(recipe);
+        // so I need to add in a recipe factor, e.g. for quantity 2 of a 1 item recipe I need a recipeFactor of 2
+        plan.setRecipeFactor(quantity / recipe.getYield());
+        return plan;
     }
 
-    private Maker getMaker(final ItemType itemType) {
+     private Maker getMaker(final ItemType itemType) {
         return this.makers.stream().filter(m -> m.makes(itemType)).findFirst().orElse(null);
     }
 
-    public void displayAsTree(final RecursiveRecipe recursiveRecipe, final String indent) {
-        System.out.println(indent + recursiveRecipe.getDetails());
-        for (final RecursiveRecipe recipe : recursiveRecipe.getRecipes()) {
-            this.displayAsTree(recipe, indent + "  ");
-        }
-    }
-
-    public void listTotalItems(final RecursiveRecipe recursiveRecipe) {
-        this.neededQuantities.clear();
-        this.addItemQuantitiesRecursively(recursiveRecipe);
-        for (Map.Entry<ItemType, Double> entry : this.neededQuantities.entrySet()) {
-            System.out.println(entry.getKey().getId() + " : " + entry.getValue());
-        }
-    }
-
-    private void addItemQuantitiesRecursively(RecursiveRecipe recursiveRecipe) {
-        for (RecursiveRecipe recipe : recursiveRecipe.getRecipes()) {
-            if (this.neededQuantities.containsKey(recipe.getItem())) {
-                this.neededQuantities.put(recipe.getItem(), this.neededQuantities.get(recipe.getItem()) + recipe.getNeed());
-            } else {
-                this.neededQuantities.put(recipe.getItem(), recipe.getNeed());
-            }
-        }
-        for (RecursiveRecipe recipe : recursiveRecipe.getRecipes()) {
-            this.addItemQuantitiesRecursively(recipe);
-        }
-    }
-
-    public void describe(RecursiveRecipe recursiveRecipe) {
-        System.out.println("To make " + recursiveRecipe.getNeed() + " per second of " + recursiveRecipe.getItem().getType());
-        System.out.println("I will need " + recursiveRecipe.getNeed() / recursiveRecipe.getYield() + " " + recursiveRecipe.getMakeWith().getMakerType().getType() + "(s)");
-        System.out.println("which will need :");
-        for (RecursiveRecipe recipe : recursiveRecipe.getRecipes()) {
-            System.out.println("  " + recipe.getItem().getType());
-        }
-        System.out.println();
-    }
-
-    public Request planRequest(ItemType itemType, double quantity) {
-        Request request = new Request();
-        request.setItemType(itemType);
-        request.setQuantity(quantity);
-        RecursiveRecipe recipe = getRecursiveRecipe(itemType, quantity).orElse(null);
-        request.setRecipe(recipe);
-        return request;
-    }
-
-    public void describe(Request request) {
-        describeAtLevel(0, request);
-    }
-
-    private void describeAtLevel(int level, Request request) {
-        String indent =
-        System.out.println("To make " + recursiveRecipe.getNeed() + " per second of " + recursiveRecipe.getItem().getType());
-        System.out.println("I will need " + recursiveRecipe.getNeed() / recursiveRecipe.getYield() + " " + recursiveRecipe.getMakeWith().getMakerType().getType() + "(s)");
-        System.out.println("which will need :");
-        for (RecursiveRecipe recipe : recursiveRecipe.getRecipes()) {
-            System.out.println("  " + recipe.getItem().getType());
-        }
-        System.out.println();
+    public void describe(final Plan plan) {
+        // TODO go figure out SLF4j
+        System.out.printf("Plan %s (%s)%n", plan.getItemType().getType(), plan.getQuantity());
+        System.out.printf("  will use %s of recipe %s%n", plan.getRecipeFactor(), plan.getRecipe());
     }
 }
