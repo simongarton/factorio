@@ -19,6 +19,14 @@ public class Foreman {
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
     private final List<Item> items;
     private final Map<ItemType, MakerSlot> makers = new HashMap<>();
+    private final Map<String, Double> requiredMakers = new HashMap<>();
+
+    private static final double HALF_YELLOW_BELT = 7.5;
+    private static final double YELLOW_BELT = 15;
+    private static final double HALF_RED_BELT = 15;
+    private static final double RED_BELT = 30;
+    private static final double HALF_BLUE_BELT = 22.5;
+    private static final double BLUE_BELT = 45;
 
     public Foreman() {
         this.items = ItemLoader.getItems();
@@ -50,19 +58,24 @@ public class Foreman {
         final Item item = this.getItemForItemType(job.getItemType());
         final Recipe recipe = item.getRecipe();
         docket.setRecipe(recipe);
-        final Maker maker = this.getMaker(job.getItemType());
-        docket.setMaker(maker);
-        docket.setMakerSpeed(recipe.getYield() * maker.getCraftingSpeed());
-        docket.setMakerCount(job.getUnitsToMake() / docket.getMakerSpeed());
-        List<Ingredient> docketIngredients = new ArrayList<>();
-        for (Ingredient ingredient : recipe.getIngredients()) {
-            Ingredient docketIngredient = new Ingredient();
+        try {
+            final Maker maker = this.getMaker(job.getItemType());
+            docket.setMaker(maker);
+            docket.setMakerSpeed(recipe.getYield() * maker.getCraftingSpeed());
+            docket.setMakerCount(job.getUnitsToMake() / docket.getMakerSpeed());
+        } catch (final MakerNotFoundException mnfe) {
+
+        }
+        final List<Ingredient> docketIngredients = new ArrayList<>();
+        for (final Ingredient ingredient : recipe.getIngredients()) {
+            final Ingredient docketIngredient = new Ingredient();
             docketIngredient.setItemType(ingredient.getItemType());
             docketIngredient.setQuantity(ingredient.getQuantity() * docket.getMakerCount());
             docketIngredients.add(docketIngredient);
+            final Job subJob = new Job(docketIngredient.getQuantity(), docketIngredient.getItemType());
+            docket.getDockets().add(this.planForJob(subJob));
         }
         docket.setIngredients(docketIngredients);
-
         return docket;
     }
 
@@ -103,22 +116,87 @@ public class Foreman {
     }
 
     public void explainDocket(final Docket docket) {
+        this.explainDocket(docket, "");
+    }
+
+    public void explainDocket(final Docket docket, final String indent) {
+        final boolean defaultRecipe = false;
         final Job job = docket.getJob();
-        this.logger.info("Well, what you got here, boss, is a job to make {} of {}.",
-                job.getUnitsToMake(),
+        this.logger.info(indent + "Well, what you got here, boss, is a job to make {} of {}.",
+                String.format("%3.2f", job.getUnitsToMake()),
                 job.getItemType().getType());
-        this.logger.info("We make those with a {}, which make {} per second, so we'll need {} machines.",
-                docket.getMaker().getItemType(),
-                docket.getMakerSpeed(),
-                String.format("%3.2f", docket.getMakerCount()));
-        this.logger.info("For 1 unit, we would need this list of ingredients :");
-        for (Ingredient ingredient : docket.getRecipe().getIngredients()) {
-            this.logger.info("    {} of {}",String.format("%3.2f", ingredient.getQuantity()), ingredient.getItemType().getType());
+        if (docket.getMaker() == null) {
+            this.logger.info(indent + "This is a raw material. For {}, you'll need at least a {}",
+                    String.format("%3.2f", job.getUnitsToMake()),
+                    this.minimumBelt(job.getUnitsToMake()));
+        } else {
+            this.logger.info(indent + "We make those with a {}, which make {} per second, so we'll need {} machines.",
+                    docket.getMaker().getItemType(),
+                    docket.getMakerSpeed(),
+                    String.format("%3.2f", docket.getMakerCount()));
+            if (defaultRecipe) {
+                this.logger.info(indent + "For 1 unit, we would need this list of ingredients :");
+                for (final Ingredient ingredient : docket.getRecipe().getIngredients()) {
+                    this.logger.info(indent + "    {} of {}", String.format("%3.2f", ingredient.getQuantity()), ingredient.getItemType().getType());
+                }
+            }
+            this.logger.info(indent + "For {} units, we will need this list of ingredients :", String.format("%3.2f", job.getUnitsToMake()));
+            for (final Ingredient ingredient : docket.getIngredients()) {
+                this.logger.info(indent + "    {} of {}", String.format("%3.2f", ingredient.getQuantity()), ingredient.getItemType().getType());
+            }
+            this.logger.info(indent + "and I'll get Jim to tell you how we'll do that.");
+            for (final Docket subDocket : docket.getDockets()) {
+                this.explainDocket(subDocket, indent + "  ");
+            }
         }
-        this.logger.info("For {} units, we will need this list of ingredients :",job.getUnitsToMake());
-        for (Ingredient ingredient : docket.getIngredients()) {
-            this.logger.info("    {} of {}",String.format("%3.2f", ingredient.getQuantity()), ingredient.getItemType().getType());
+    }
+
+    private String minimumBelt(final double unitsToMake) {
+        if (unitsToMake <= HALF_YELLOW_BELT) {
+            return "half yellow belt.";
         }
+        if (unitsToMake <= YELLOW_BELT) {
+            return "full yellow belt / half red belt.";
+        }
+        if (unitsToMake <= HALF_BLUE_BELT) {
+            return "half blue belt.";
+        }
+        if (unitsToMake <= RED_BELT) {
+            return "full red belt.";
+        }
+        if (unitsToMake <= BLUE_BELT) {
+            return "full blue belt.";
+        }
+        return " ... hmm, that could be a problem.";
+    }
+
+    public void bom(final Docket docket) {
+        this.requiredMakers.clear();
+        this.setupBomForDocket(docket);
+        for (final Map.Entry<String, Double> entry : this.requiredMakers.entrySet()) {
+            this.logger.info("{} : {}", entry.getKey(), String.format("%3.2f", entry.getValue()));
+        }
+    }
+
+    private void setupBomForDocket(final Docket docket) {
+        if (docket.getMaker() == null) {
+            return;
+        }
+        final String key = docket.getMaker().getItemType().getType() + " (" + docket.getJob().getItemType().getType() + ")";
+        if (this.requiredMakers.containsKey(key)) {
+            this.requiredMakers.put(key, this.requiredMakers.get(key) + docket.getMakerCount());
+        } else {
+            this.requiredMakers.put(key, docket.getMakerCount());
+        }
+        for (final Docket subDocket : docket.getDockets()) {
+            this.setupBomForDocket(subDocket);
+        }
+    }
+
+    public void disableFurnaces() {
+        this.disableMaker(ItemType.STONE_FURNACE);
+        this.disableMaker(ItemType.STEEL_FURNACE);
+        this.disableMaker(ItemType.ELECTRIC_FURNACE);
     }
 
     @Getter

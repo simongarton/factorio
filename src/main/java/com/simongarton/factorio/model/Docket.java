@@ -15,6 +15,7 @@ public class Docket {
     private double makerSpeed;
     private double makerCount;
     private List<Ingredient> ingredients = new ArrayList<>();
+    private List<Docket> dockets = new ArrayList<>();
 
     public Docket(Job job) {
         this.job = job;

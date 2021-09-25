@@ -22,11 +22,12 @@ public class Main {
 
         // I want to create X units (per second) of Y. This I will refer to as a Job, and I will give it to a Foreman.
         Foreman foreman = new Foreman();
-        foreman.disableMaker(ItemType.ASSEMBLING_MACHINE_1);
-        Job job = new Job(1, ItemType.ELECTRONIC_CIRCUIT);
+//        foreman.disableMaker(ItemType.ASSEMBLING_MACHINE_1);
+        foreman.disableFurnaces();
+        Job job = new Job(1, ItemType.PRODUCTION_SCIENCE_PACK);
         Docket docket = foreman.planForJob(job);
         foreman.explainDocket(docket);
-
+        foreman.bom(docket);
     }
 
     private void loadAndAnalyseRecipes() {
