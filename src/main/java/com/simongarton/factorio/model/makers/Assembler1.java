@@ -2,7 +2,9 @@ package com.simongarton.factorio.model.makers;
 
 import com.simongarton.factorio.model.ItemType;
 import com.simongarton.factorio.model.MakerType;
+import lombok.NoArgsConstructor;
 
+@NoArgsConstructor
 public class Assembler1 extends Maker {
 
     protected ItemType itemType = ItemType.ASSEMBLING_MACHINE_1;

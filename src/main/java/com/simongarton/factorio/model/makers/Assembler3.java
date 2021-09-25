@@ -5,7 +5,7 @@ import com.simongarton.factorio.model.MakerType;
 
 public class Assembler3 extends Maker {
 
-    private final ItemType itemType = ItemType.ASSEMBLING_MACHINE_2;
+    private final ItemType itemType = ItemType.ASSEMBLING_MACHINE_3;
 
     private final double craftingSpeed = 1.25;
 

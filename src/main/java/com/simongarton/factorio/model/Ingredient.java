@@ -8,5 +8,6 @@ public class Ingredient {
 
     @SerializedName(value = "id")
     private ItemType itemType;
-    private double amount;
+    @SerializedName(value = "amount")
+    private double quantity;
 }

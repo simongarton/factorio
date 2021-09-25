@@ -18,13 +18,14 @@ public class Main {
 
         final Planner planner = new Planner();
 
+        // creates a GraphViz data file for everything.
+        planner.dumpGraph();
+
         // I want to make X units of Y (in one second, at present everything assumes one second) so I need a plan
         // That plan will have some items and quantities it needs, and will probably then list the plans needed to make each of those.
-        Plan oneCircuitPlan = planner.plan(ItemType.ELECTRONIC_CIRCUIT, 1);
+        Plan oneCircuitPlan = planner.plan(ItemType.COPPER_CABLE, 5);
         planner.describe(oneCircuitPlan);
 
-        Plan twoCircuitsPlan = planner.plan(ItemType.ELECTRONIC_CIRCUIT, 2);
-        planner.describe(twoCircuitsPlan);
     }
 
     private void loadAndAnalyseRecipes() {
