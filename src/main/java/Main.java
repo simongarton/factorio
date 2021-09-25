@@ -2,10 +2,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
+import com.simongarton.factorio.Foreman;
 import com.simongarton.factorio.Planner;
-import com.simongarton.factorio.model.Item;
-import com.simongarton.factorio.model.ItemType;
-import com.simongarton.factorio.model.Plan;
+import com.simongarton.factorio.model.*;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -21,10 +20,12 @@ public class Main {
         // creates a GraphViz data file for everything.
         planner.dumpGraph();
 
-        // I want to make X units of Y (in one second, at present everything assumes one second) so I need a plan
-        // That plan will have some items and quantities it needs, and will probably then list the plans needed to make each of those.
-        Plan oneCircuitPlan = planner.plan(ItemType.COPPER_CABLE, 5);
-        planner.describe(oneCircuitPlan);
+        // I want to create X units (per second) of Y. This I will refer to as a Job, and I will give it to a Foreman.
+        Foreman foreman = new Foreman();
+        foreman.disableMaker(ItemType.ASSEMBLING_MACHINE_1);
+        Job job = new Job(1, ItemType.ELECTRONIC_CIRCUIT);
+        Docket docket = foreman.planForJob(job);
+        foreman.explainDocket(docket);
 
     }
 
