@@ -1,6 +1,6 @@
 package com.simongarton.factorio.model;
 
-public enum RecipeType {
+public enum ItemType {
 
     ACCUMULATOR("accumulator"),
     ADVANCED_CIRCUIT("advanced-circuit"),
@@ -215,9 +215,13 @@ public enum RecipeType {
     UTILITY_SCIENCE_PACK("utility-science-pack"),
     WOODEN_CHEST("wooden-chest");
 
-    private final String recipe;
+    private final String id;
 
-    RecipeType(final String recipe) {
-        this.recipe = recipe;
+    ItemType(final String id) {
+        this.id = id;
+    }
+
+    public String id() {
+        return this.id;
     }
 }

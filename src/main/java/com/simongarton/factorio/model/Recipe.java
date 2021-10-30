@@ -28,7 +28,7 @@ public class Recipe {
     private String name;
     @SerializedName(value = "localised_name")
     private Object localisedName;
-    private String category;
+    private CategoryType category;
     private String order;
     private Group group;
     private Group subgroup;

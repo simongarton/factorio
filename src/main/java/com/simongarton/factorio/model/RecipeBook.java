@@ -102,16 +102,20 @@ public class RecipeBook {
         return keys;
     }
 
-    public Recipe getRecipe(final String name) {
-        if (!(this.recipeMap.containsKey(name))) {
-            throw new RecipeNotFoundException(name);
+    public Recipe getRecipe(final ItemType itemType) {
+        return this.getRecipe(itemType.id());
+    }
+
+    public Recipe getRecipe(final String id) {
+        if (!(this.recipeMap.containsKey(id))) {
+            throw new RecipeNotFoundException(id);
         }
-        final Recipe recipe = this.recipeMap.get(name);
+        final Recipe recipe = this.recipeMap.get(id);
         if (recipe.getTime() == null) {
-            throw new IncompleteDataException("No time for " + name);
+            throw new IncompleteDataException("No time for " + id);
         }
         if (recipe.getYield() == null) {
-            throw new IncompleteDataException("No yield for " + name);
+            throw new IncompleteDataException("No yield for " + id);
         }
         return recipe;
     }
@@ -120,8 +124,8 @@ public class RecipeBook {
         return this.recipeMap.size();
     }
 
-    public Map<String, List<Recipe>> getCategories() {
-        final Map<String, List<Recipe>> categoryMap = new HashMap<>();
+    public Map<CategoryType, List<Recipe>> getCategories() {
+        final Map<CategoryType, List<Recipe>> categoryMap = new HashMap<>();
         for (final Recipe recipe : this.recipeMap.values()) {
             if (!categoryMap.containsKey(recipe.getCategory())) {
                 categoryMap.put(recipe.getCategory(), new ArrayList<>());

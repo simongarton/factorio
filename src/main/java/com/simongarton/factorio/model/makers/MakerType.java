@@ -1,4 +1,4 @@
-package com.simongarton.factorio.model;
+package com.simongarton.factorio.model.makers;
 
 public enum MakerType {
 

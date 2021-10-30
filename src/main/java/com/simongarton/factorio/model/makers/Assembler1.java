@@ -1,18 +1,23 @@
 package com.simongarton.factorio.model.makers;
 
-import com.simongarton.factorio.model.RecipeType;
-import com.simongarton.factorio.model.MakerType;
+import com.simongarton.factorio.model.CategoryType;
+import com.simongarton.factorio.model.ItemType;
 import lombok.NoArgsConstructor;
+
+import java.util.Set;
+
+import static com.simongarton.factorio.model.CategoryType.ADVANCED_CRAFTING;
+import static com.simongarton.factorio.model.CategoryType.CRAFTING;
 
 @NoArgsConstructor
 public class Assembler1 extends Maker {
 
-    protected RecipeType itemType = RecipeType.ASSEMBLING_MACHINE_1;
+    protected ItemType itemType = ItemType.ASSEMBLING_MACHINE_1;
 
     private final double craftingSpeed = 0.5;
 
     @Override
-    public RecipeType getRecipeType() {
+    public ItemType getItemType() {
         return this.itemType;
     }
 
@@ -22,12 +27,12 @@ public class Assembler1 extends Maker {
     }
 
     @Override
-    public boolean makes(final RecipeType itemType) {
-        return this.assembler1Items.contains(itemType);
+    public double getCraftingSpeed() {
+        return this.craftingSpeed;
     }
 
     @Override
-    public double getCraftingSpeed() {
-        return this.craftingSpeed;
+    public boolean makes(CategoryType categoryType) {
+        return Set.of(CRAFTING, ADVANCED_CRAFTING).contains(categoryType);
     }
 }
