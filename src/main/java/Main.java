@@ -2,57 +2,85 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.simongarton.factorio.Foreman;
-import com.simongarton.factorio.model.Docket;
 import com.simongarton.factorio.model.Item;
-import com.simongarton.factorio.model.ItemType;
-import com.simongarton.factorio.model.Job;
+import com.simongarton.factorio.model.RecipeNew;
+import com.simongarton.factorio.model.RecipeBook;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.lang.reflect.Type;
-import java.util.List;
+import java.util.*;
 
 public class Main {
 
+    private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
+
     public static void main(final String[] args) {
 
-        // I want to create X units (per second) of Y. This I will refer to as a Job, and I will give it to a Foreman.
-        final Foreman foreman = new Foreman();
-        // foreman.listItems();
-//        foreman.disableMaker(ItemType.ASSEMBLING_MACHINE_1);
-        foreman.disableMaker(ItemType.ASSEMBLING_MACHINE_2);
-        foreman.disableMaker(ItemType.ASSEMBLING_MACHINE_3);
-        foreman.disableFurnaces();
-        foreman.disableMaker(ItemType.STEEL_FURNACE);
-        foreman.disableMaker(ItemType.ELECTRIC_FURNACE);
-        final Job job = new Job(8, ItemType.  );
-        final Docket docket = foreman.planForJob(job);
-        foreman.explainDocket(docket);
-        System.out.println();
-        foreman.bom(docket);
+        final Main main = new Main();
+        main.run();
     }
 
-    private void loadAndAnalyseRecipes() {
+    public void run() {
+
+        final RecipeBook recipeBook = new RecipeBook();
+        this.logger.info("Found " + recipeBook.size() + " recipes.");
+
+        for (final Map.Entry<String, List<RecipeNew>> entry : recipeBook.getCategories().entrySet()) {
+            this.logger.info("  category " + entry.getKey() + " has " + entry.getValue().size() + " recipes.");
+        }
+
+        if (false) {
+            this.getEnumValues(recipeBook);
+        }
+
+        if (false) {
+            this.generateRecipeTimings();
+        }
+
+        if (false) {
+            this.generateRecipeYields();
+        }
+    }
+
+    private void generateRecipeTimings() {
         final Gson gson = new GsonBuilder().setPrettyPrinting().create();
         final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("data/recipes.json");
         final JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
 
         final Type ITEM_TYPE = new TypeToken<List<Item>>() {
         }.getType();
-        final List<Item> data = gson.fromJson(reader, ITEM_TYPE);
-
-        System.out.println(data.get(0));
-        System.out.println(data);
-        this.produceItemEnumerator(data);
-        data.stream().forEach(i -> System.out.println(i.getItemType().getId()));
+        final List<Item> items = gson.fromJson(reader, ITEM_TYPE);
+        Collections.sort(items, Comparator.comparing(Item::getId));
+        for (Item item : items) {
+            if (item.getRecipe().getTime() != null) {
+                System.out.println("\"" + item.getItemType().getId() + "\":" + item.getRecipe().getTime() + ",");
+            }
+        }
     }
 
-    private void produceItemEnumerator(final List<Item> items) {
-        for (final Item item : items) {
-            System.out.println("@SerializedName(value = \"" + item.getItemType() + "\")");
-            System.out.println(item.getItemType().getId().replace("-", "_")
-                    + "(\"" + item.getItemType() + "\", \"" + item.getName() + "\"),");
+    private void generateRecipeYields() {
+        final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+        final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("data/recipes.json");
+        final JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
+
+        final Type ITEM_TYPE = new TypeToken<List<Item>>() {
+        }.getType();
+        final List<Item> items = gson.fromJson(reader, ITEM_TYPE);
+        Collections.sort(items, Comparator.comparing(Item::getId));
+        for (Item item : items) {
+            if (item.getRecipe().getYield() != null) {
+                System.out.println("\"" + item.getItemType().getId() + "\":" + item.getRecipe().getYield() + ",");
+            }
+        }
+    }
+
+    private void getEnumValues(final RecipeBook recipeBook) {
+        for (final String recipe : recipeBook.getRecipeNames()) {
+            final String enumValue = recipe.toUpperCase(Locale.ROOT).replace("-", "_");
+            System.out.println(enumValue + "(\"" + recipe + "\"),");
         }
     }
 }

@@ -1,21 +1,21 @@
 package com.simongarton.factorio.model.makers;
 
-import com.simongarton.factorio.model.ItemType;
+import com.simongarton.factorio.model.RecipeType;
 import com.simongarton.factorio.model.MakerType;
 
 public class ChemicalPlant extends Maker {
 
-    private final ItemType itemType = ItemType.CHEMICAL_PLANT;
+    private final RecipeType itemType = RecipeType.CHEMICAL_PLANT;
 
     private final double craftingSpeed = 1.25;
 
     @Override
-    public boolean makes(final ItemType itemType) {
+    public boolean makes(final RecipeType itemType) {
         return this.chemicalPlantItems.contains(itemType);
     }
 
     @Override
-    public ItemType getItemType() {
+    public RecipeType getRecipeType() {
         return this.itemType;
     }
 

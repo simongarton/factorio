@@ -14,4 +14,8 @@ public class Item {
     private String wikiLink;
     private String category;
     private Recipe recipe;
+
+    public String getId() {
+        return this.itemType.getId();
+    }
 }
