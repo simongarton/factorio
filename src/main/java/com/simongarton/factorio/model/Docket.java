@@ -12,8 +12,8 @@ public class Docket {
     private Job job;
     private Maker maker;
     private Recipe recipe;
-    private double makerSpeed;
-    private double makerCount;
+    private double singleMakerUnitsPerSecond;
+    private double makersNeeded;
     private List<Ingredient> ingredients = new ArrayList<>();
     private List<Docket> dockets = new ArrayList<>();
 

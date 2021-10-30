@@ -3,8 +3,10 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.simongarton.factorio.Foreman;
-import com.simongarton.factorio.Planner;
-import com.simongarton.factorio.model.*;
+import com.simongarton.factorio.model.Docket;
+import com.simongarton.factorio.model.Item;
+import com.simongarton.factorio.model.ItemType;
+import com.simongarton.factorio.model.Job;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -15,18 +17,19 @@ public class Main {
 
     public static void main(final String[] args) {
 
-        final Planner planner = new Planner();
-
-        // creates a GraphViz data file for everything.
-        planner.dumpGraph();
-
         // I want to create X units (per second) of Y. This I will refer to as a Job, and I will give it to a Foreman.
-        Foreman foreman = new Foreman();
+        final Foreman foreman = new Foreman();
+        // foreman.listItems();
 //        foreman.disableMaker(ItemType.ASSEMBLING_MACHINE_1);
+        foreman.disableMaker(ItemType.ASSEMBLING_MACHINE_2);
+        foreman.disableMaker(ItemType.ASSEMBLING_MACHINE_3);
         foreman.disableFurnaces();
-        Job job = new Job(1, ItemType.PRODUCTION_SCIENCE_PACK);
-        Docket docket = foreman.planForJob(job);
+        foreman.disableMaker(ItemType.STEEL_FURNACE);
+        foreman.disableMaker(ItemType.ELECTRIC_FURNACE);
+        final Job job = new Job(8, ItemType.  );
+        final Docket docket = foreman.planForJob(job);
         foreman.explainDocket(docket);
+        System.out.println();
         foreman.bom(docket);
     }
 
@@ -41,7 +44,7 @@ public class Main {
 
         System.out.println(data.get(0));
         System.out.println(data);
-        produceItemEnumerator(data);
+        this.produceItemEnumerator(data);
         data.stream().forEach(i -> System.out.println(i.getItemType().getId()));
     }
 

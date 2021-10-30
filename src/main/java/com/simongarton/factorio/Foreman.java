@@ -9,10 +9,11 @@ import lombok.Getter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 
 public class Foreman {
 
@@ -61,8 +62,10 @@ public class Foreman {
         try {
             final Maker maker = this.getMaker(job.getItemType());
             docket.setMaker(maker);
-            docket.setMakerSpeed(recipe.getYield() * maker.getCraftingSpeed());
-            docket.setMakerCount(job.getUnitsToMake() / docket.getMakerSpeed());
+            if (recipe.getYield() != null) {
+                docket.setSingleMakerUnitsPerSecond((recipe.getYield() / recipe.getTime())* maker.getCraftingSpeed());
+                docket.setMakersNeeded(job.getUnitsToMake() / docket.getSingleMakerUnitsPerSecond());
+            }
         } catch (final MakerNotFoundException mnfe) {
 
         }
@@ -70,7 +73,7 @@ public class Foreman {
         for (final Ingredient ingredient : recipe.getIngredients()) {
             final Ingredient docketIngredient = new Ingredient();
             docketIngredient.setItemType(ingredient.getItemType());
-            docketIngredient.setQuantity(ingredient.getQuantity() * docket.getMakerCount());
+            docketIngredient.setQuantity(ingredient.getQuantity() * docket.getMakersNeeded());
             docketIngredients.add(docketIngredient);
             final Job subJob = new Job(docketIngredient.getQuantity(), docketIngredient.getItemType());
             docket.getDockets().add(this.planForJob(subJob));
@@ -97,12 +100,12 @@ public class Foreman {
 
     private List<ItemType> preferredMakers() {
         return List.of(
-                ItemType.ASSEMBLING_MACHINE_1,
-                ItemType.ASSEMBLING_MACHINE_2,
                 ItemType.ASSEMBLING_MACHINE_3,
-                ItemType.STONE_FURNACE,
-                ItemType.STEEL_FURNACE,
+                ItemType.ASSEMBLING_MACHINE_2,
+                ItemType.ASSEMBLING_MACHINE_1,
                 ItemType.ELECTRIC_FURNACE,
+                ItemType.STEEL_FURNACE,
+                ItemType.STONE_FURNACE,
                 ItemType.OIL_REFINERY,
                 ItemType.CHEMICAL_PLANT
         );
@@ -130,10 +133,14 @@ public class Foreman {
                     String.format("%3.2f", job.getUnitsToMake()),
                     this.minimumBelt(job.getUnitsToMake()));
         } else {
-            this.logger.info(indent + "We make those with a {}, which make {} per second, so we'll need {} machines.",
+            this.logger.info(indent + "We make those with a {}, crafting speed {}; that recipe yields {} in {} seconds",
                     docket.getMaker().getItemType(),
-                    docket.getMakerSpeed(),
-                    String.format("%3.2f", docket.getMakerCount()));
+                    docket.getMaker().getCraftingSpeed(),
+                    docket.getRecipe().getYield(),
+                    docket.getRecipe().getTime());
+            this.logger.info(indent + "so one maker will make {} per second, so we'll need {} machines.",
+                    docket.getSingleMakerUnitsPerSecond(),
+                    String.format("%3.2f", docket.getMakersNeeded()));
             if (defaultRecipe) {
                 this.logger.info(indent + "For 1 unit, we would need this list of ingredients :");
                 for (final Ingredient ingredient : docket.getRecipe().getIngredients()) {
@@ -173,8 +180,11 @@ public class Foreman {
     public void bom(final Docket docket) {
         this.requiredMakers.clear();
         this.setupBomForDocket(docket);
-        for (final Map.Entry<String, Double> entry : this.requiredMakers.entrySet()) {
-            this.logger.info("{} : {}", entry.getKey(), String.format("%3.2f", entry.getValue()));
+        final List<String> keys = new ArrayList<>(this.requiredMakers.keySet());
+        keys.sort(Comparator.comparing(String::valueOf));
+        for (final String key : keys) {
+            final Double value = this.requiredMakers.get(key);
+            this.logger.info("{} : {}", key, String.format("%3.2f", value));
         }
     }
 
@@ -184,9 +194,9 @@ public class Foreman {
         }
         final String key = docket.getMaker().getItemType().getType() + " (" + docket.getJob().getItemType().getType() + ")";
         if (this.requiredMakers.containsKey(key)) {
-            this.requiredMakers.put(key, this.requiredMakers.get(key) + docket.getMakerCount());
+            this.requiredMakers.put(key, this.requiredMakers.get(key) + docket.getMakersNeeded());
         } else {
-            this.requiredMakers.put(key, docket.getMakerCount());
+            this.requiredMakers.put(key, docket.getMakersNeeded());
         }
         for (final Docket subDocket : docket.getDockets()) {
             this.setupBomForDocket(subDocket);
@@ -199,11 +209,51 @@ public class Foreman {
         this.disableMaker(ItemType.ELECTRIC_FURNACE);
     }
 
+    public void listItems() {
+        for (final Item item : this.items) {
+            try {
+                final Maker maker = this.getMaker(item.getItemType());
+                //System.out.println(maker.getItemType().getType());
+            } catch (final MakerNotFoundException mnfe) {
+                System.out.println("Maker not found for ItemType." + item.getItemType() + ",");
+            }
+        }
+        for (final Item item : this.items) {
+//            System.out.println("ItemType." + item.getItemType() + ",");
+        }
+    }
+
     @Getter
     @AllArgsConstructor
     private class MakerSlot {
 
         private Maker maker;
         private boolean available;
+    }
+
+    public void dumpGraph() {
+        final List<String> lines = new ArrayList<>();
+        lines.add("digraph d {");
+        lines.add("rankdir=LR;");
+
+        final Set<String> done = new HashSet<>();
+        for (final Item item : this.items) {
+            final String result = item.getItemType().getType();
+            for (final Ingredient ingredient : item.getRecipe().getIngredients()) {
+                final String source = ingredient.getItemType().getType();
+                final String key = "\"" + source + "\"" + "->" + "\"" + result + "\"";
+                if (!(done.contains(key))) {
+                    lines.add(key);
+                }
+                done.add(key);
+            }
+        }
+        lines.add("}");
+        final Path path = Paths.get("factorio.dot");
+        try {
+            Files.write(path, lines);
+        } catch (final IOException e) {
+            e.printStackTrace();
+        }
     }
 }
