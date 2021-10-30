@@ -1,6 +1,7 @@
-package com.simongarton.factorio.model;
+package com.simongarton.factorio.model.obsolete;
 
 import com.google.gson.annotations.SerializedName;
+import com.simongarton.factorio.model.obsolete.ItemType;
 import lombok.Data;
 
 @Data

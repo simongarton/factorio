@@ -16,7 +16,7 @@ import java.util.*;
 
 public class RecipeBook {
 
-    private final Map<String, RecipeNew> recipeMap;
+    private final Map<String, Recipe> recipeMap;
     private final Gson gson;
     private final Logger logger = LoggerFactory.getLogger(this.getClass().getSimpleName());
 
@@ -32,7 +32,7 @@ public class RecipeBook {
 
     private void validate() {
         int errors = 0;
-        for (final Map.Entry<String, RecipeNew> entry : this.recipeMap.entrySet()) {
+        for (final Map.Entry<String, Recipe> entry : this.recipeMap.entrySet()) {
             if (entry.getValue().getTime() == null) {
                 this.logger.warn(entry.getValue().getName() + " has no time set");
                 errors++;
@@ -45,11 +45,11 @@ public class RecipeBook {
         this.logger.info("Validated " + this.recipeMap.size() + " recipes and found " + errors + " errors.");
     }
 
-    private Map<String, RecipeNew> loadRecipeBook() {
+    private Map<String, Recipe> loadRecipeBook() {
         final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("recipe-lister/recipe.json");
         final JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
 
-        final Type ITEM_TYPE = new TypeToken<Map<String, RecipeNew>>() {
+        final Type ITEM_TYPE = new TypeToken<Map<String, Recipe>>() {
         }.getType();
         return this.gson.fromJson(reader, ITEM_TYPE);
     }
@@ -102,31 +102,31 @@ public class RecipeBook {
         return keys;
     }
 
-    public RecipeNew getRecipe(final String name) {
+    public Recipe getRecipe(final String name) {
         if (!(this.recipeMap.containsKey(name))) {
             throw new RecipeNotFoundException(name);
         }
-        final RecipeNew recipeNew = this.recipeMap.get(name);
-        if (recipeNew.getTime() == null) {
+        final Recipe recipe = this.recipeMap.get(name);
+        if (recipe.getTime() == null) {
             throw new IncompleteDataException("No time for " + name);
         }
-        if (recipeNew.getYield() == null) {
+        if (recipe.getYield() == null) {
             throw new IncompleteDataException("No yield for " + name);
         }
-        return recipeNew;
+        return recipe;
     }
 
     public int size() {
         return this.recipeMap.size();
     }
 
-    public Map<String, List<RecipeNew>> getCategories() {
-        final Map<String, List<RecipeNew>> categoryMap = new HashMap<>();
-        for (final RecipeNew recipeNew : this.recipeMap.values()) {
-            if (!categoryMap.containsKey(recipeNew.getCategory())) {
-                categoryMap.put(recipeNew.getCategory(), new ArrayList<>());
+    public Map<String, List<Recipe>> getCategories() {
+        final Map<String, List<Recipe>> categoryMap = new HashMap<>();
+        for (final Recipe recipe : this.recipeMap.values()) {
+            if (!categoryMap.containsKey(recipe.getCategory())) {
+                categoryMap.put(recipe.getCategory(), new ArrayList<>());
             }
-            categoryMap.get(recipeNew.getCategory()).add(recipeNew);
+            categoryMap.get(recipe.getCategory()).add(recipe);
         }
         return categoryMap;
     }

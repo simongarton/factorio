@@ -2,8 +2,8 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
-import com.simongarton.factorio.model.Item;
-import com.simongarton.factorio.model.RecipeNew;
+import com.simongarton.factorio.model.obsolete.Item;
+import com.simongarton.factorio.model.Recipe;
 import com.simongarton.factorio.model.RecipeBook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +28,7 @@ public class Main {
         final RecipeBook recipeBook = new RecipeBook();
         this.logger.info("Found " + recipeBook.size() + " recipes.");
 
-        for (final Map.Entry<String, List<RecipeNew>> entry : recipeBook.getCategories().entrySet()) {
+        for (final Map.Entry<String, List<Recipe>> entry : recipeBook.getCategories().entrySet()) {
             this.logger.info("  category " + entry.getKey() + " has " + entry.getValue().size() + " recipes.");
         }
 
