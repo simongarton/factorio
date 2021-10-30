@@ -4,9 +4,7 @@ import com.simongarton.factorio.exceptions.MoreThanOneMakerException;
 import com.simongarton.factorio.model.*;
 import com.simongarton.factorio.model.makers.Maker;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 public class Daemon {
 
@@ -30,11 +28,18 @@ public class Daemon {
 
         final Maker maker = optionalMaker.get();
         final double madeInOneSecond = maker.getCraftingSpeed() * recipe.getYield() / recipe.getTime();
-        final double makerCount =  itemsPerSecond / madeInOneSecond;
+        final double makerCount = itemsPerSecond / madeInOneSecond;
 
         final Plan plan = new Plan();
         plan.setMakerType(maker.getItemType());
         plan.setMakerCount(makerCount);
+        final Map<ItemType, Double> ingredients = new HashMap<>();
+        for (final Recipe.Ingredient ingredient : recipe.getIngredients()) {
+            final double amountNeeded = ingredient.getAmount() * makerCount / recipe.getTime();
+            final ItemType ingredientType = ItemType.from(ingredient.getName());
+            ingredients.put(ingredientType, amountNeeded);
+        }
+        plan.setIngredients(ingredients);
         return plan;
     }
 

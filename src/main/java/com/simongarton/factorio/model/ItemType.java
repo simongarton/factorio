@@ -1,5 +1,9 @@
 package com.simongarton.factorio.model;
 
+import com.simongarton.factorio.exceptions.ItemNotFoundException;
+
+import java.util.Arrays;
+
 public enum ItemType {
 
     ACCUMULATOR("accumulator"),
@@ -219,6 +223,10 @@ public enum ItemType {
 
     ItemType(final String id) {
         this.id = id;
+    }
+
+    public static ItemType from(final String type) {
+        return Arrays.stream(ItemType.values()).filter(t -> t.id.equals(type)).findFirst().orElseThrow(() -> new ItemNotFoundException(type));
     }
 
     public String id() {

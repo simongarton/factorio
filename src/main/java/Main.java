@@ -56,6 +56,15 @@ public class Main {
         plan = daemon.getPlan(ItemType.COPPER_CABLE, 10);
         this.logger.info(plan.toString());
 
+        daemon = new Daemon(recipeBook);
+        daemon.addMaker(new Assembler1());
+        plan = daemon.getPlan(ItemType.ELECTRONIC_CIRCUIT, 2);
+        this.logger.info(plan.toString());
+
+        daemon = new Daemon(recipeBook);
+        daemon.addMaker(new Assembler1());
+        plan = daemon.getPlan(ItemType.PRODUCTION_SCIENCE_PACK, 3);
+        this.logger.info(plan.toString());
     }
 
     private void generateRecipeTimings() {
