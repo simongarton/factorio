@@ -27,22 +27,11 @@ public class Main {
     public void run() {
 
         final RecipeBook recipeBook = new RecipeBook();
-        this.logger.info("Found " + recipeBook.size() + " recipes.");
+        System.out.println();
+        this.logger.info("Found " + recipeBook.size() + " recipes.\n");
 
         for (final Map.Entry<CategoryType, List<Recipe>> entry : recipeBook.getCategories().entrySet()) {
             this.logger.info("  category " + entry.getKey() + " has " + entry.getValue().size() + " recipes.");
-        }
-
-        if (false) {
-            this.getEnumValues(recipeBook);
-        }
-
-        if (false) {
-            this.generateRecipeTimings();
-        }
-
-        if (false) {
-            this.generateRecipeYields();
         }
 
         final Daemon daemon = new Daemon(recipeBook);
@@ -64,25 +53,10 @@ public class Main {
                 what's the 2 per second ?
          */
 
-//        Plan plan = daemon.getPlan(ItemType.RAIL, 1);
-//        Plan plan = daemon.getPlan(ItemType.INSERTER, 1);
-        // red
-//         Plan plan = daemon.getPlan(ItemType.AUTOMATION_SCIENCE_PACK, 1);
-        // green
-//         Plan plan = daemon.getPlan(ItemType.LOGISTIC_SCIENCE_PACK, 1);
-        // black
-//         Plan plan = daemon.getPlan(ItemType.MILITARY_SCIENCE_PACK, 1);
-        // blue
-//        Plan plan = daemon.getPlan(ItemType.CHEMICAL_SCIENCE_PACK, 1);
-        // purple
-//        Plan plan = daemon.getPlan(ItemType.PRODUCTION_SCIENCE_PACK, 1);
-        // yellow
         Plan plan = daemon.getPlan(ItemType.UTILITY_SCIENCE_PACK, 1);
+        System.out.println();
+        this.logger.info("Made " + plan.toString() + ".\n");
 
-//        final Plan plan = daemon.getPlan(ItemType.ROCKET_CONTROL_UNIT, 1);
-//        Plan plan = daemon.getPlan(ItemType.ELECTRONIC_CIRCUIT, 15);
-//        final Plan plan = daemon.getPlan(ItemType.ARTILLERY_SHELL, 0.1666);
-//        Plan plan = daemon.getPlan(ItemType.LOW_DENSITY_STRUCTURE, 1.33);
         plan.displayToTerminal();
         System.out.println();
         plan.summarizeToTerminal();
@@ -93,31 +67,24 @@ public class Main {
         final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("data/recipes.json");
         final JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
 
-        final Type ITEM_TYPE = new TypeToken<List<Item>>() {
-        }.getType();
+        final Type ITEM_TYPE = new TypeToken<List<Item>>() {}.getType();
         final List<Item> items = gson.fromJson(reader, ITEM_TYPE);
         Collections.sort(items, Comparator.comparing(Item::getId));
+
+        System.out.println("Recipe times\n");
         for (final Item item : items) {
             if (item.getRecipe().getTime() != null) {
                 System.out.println("\"" + item.getItemType().getId() + "\":" + item.getRecipe().getTime() + ",");
             }
         }
-    }
 
-    private void generateRecipeYields() {
-        final Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        final InputStream inputStream = this.getClass().getClassLoader().getResourceAsStream("data/recipes.json");
-        final JsonReader reader = new JsonReader(new InputStreamReader(inputStream));
-
-        final Type ITEM_TYPE = new TypeToken<List<Item>>() {
-        }.getType();
-        final List<Item> items = gson.fromJson(reader, ITEM_TYPE);
-        Collections.sort(items, Comparator.comparing(Item::getId));
+        System.out.println("\nRecipe yields\n");
         for (final Item item : items) {
             if (item.getRecipe().getYield() != null) {
                 System.out.println("\"" + item.getItemType().getId() + "\":" + item.getRecipe().getYield() + ",");
             }
         }
+
     }
 
     private void getEnumValues(final RecipeBook recipeBook) {
