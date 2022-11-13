@@ -217,7 +217,19 @@ public enum ItemType {
     URANIUM_PROCESSING("uranium-processing"),
     URANIUM_ROUNDS_MAGAZINE("uranium-rounds-magazine"),
     UTILITY_SCIENCE_PACK("utility-science-pack"),
-    WOODEN_CHEST("wooden-chest");
+    WOODEN_CHEST("wooden-chest"),
+
+    // resources
+    WATER("water"),
+    PETROLEUM_GAS("petroleum-gas"),
+    COAL("coal"),
+    COPPER_ORE("copper-ore"),
+    HEAVY_OIL("heavy-oil"),
+    IRON_ORE("iron-ore"),
+    RAW_WOOD("raw-wood"),
+    STONE("stone"),
+    URANIUM_235("uranium-235"),
+    URANIUM_239("uranium-238");
 
     private final String id;
 

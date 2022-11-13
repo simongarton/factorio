@@ -24,6 +24,7 @@
   "cargo-wagon": 1.0,
   "centrifuge": 1.0,
   "chemical-plant": 1.0,
+  "chemical-science-pack": 2.0,
   "cliff-explosives": 1.0,
   "cluster-grenade": 1.0,
   "combat-shotgun": 1.0,
@@ -96,6 +97,7 @@
   "logistic-chest-requester": 1.0,
   "logistic-chest-storage": 1.0,
   "logistic-robot": 1.0,
+  "logistic-science-pack": 1.0,
   "long-handed-inserter": 1.0,
   "low-density-structure": 1.0,
   "lubricant": 10.0,
@@ -183,6 +185,7 @@
   "uranium-fuel-cell": 10.0,
   "uranium-rounds-magazine": 1.0,
   "used-up-uranium-fuel-cell": 1.0,
+  "utility-science-pack": 3.0,
   "wood": 2.0,
   "wooden-chest": 1.0
 }

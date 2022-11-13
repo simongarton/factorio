@@ -4,8 +4,7 @@ import com.google.gson.reflect.TypeToken;
 import com.google.gson.stream.JsonReader;
 import com.simongarton.factorio.Daemon;
 import com.simongarton.factorio.model.*;
-import com.simongarton.factorio.model.makers.Assembler1;
-import com.simongarton.factorio.model.makers.Assembler2;
+import com.simongarton.factorio.model.makers.*;
 import com.simongarton.factorio.model.obsolete.Item;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,25 +45,47 @@ public class Main {
             this.generateRecipeYields();
         }
 
-        Daemon daemon = new Daemon(recipeBook);
-        daemon.addMaker(new Assembler1());
-        Plan plan = daemon.getPlan(ItemType.COPPER_CABLE, 10);
-        this.logger.info(plan.toString());
-
-        daemon = new Daemon(recipeBook);
+        final Daemon daemon = new Daemon(recipeBook);
         daemon.addMaker(new Assembler2());
-        plan = daemon.getPlan(ItemType.COPPER_CABLE, 10);
-        this.logger.info(plan.toString());
+        daemon.addMaker(new ChemicalPlant());
+        daemon.addMaker(new SteelFurnace());
 
-        daemon = new Daemon(recipeBook);
-        daemon.addMaker(new Assembler1());
-        plan = daemon.getPlan(ItemType.ELECTRONIC_CIRCUIT, 2);
-        this.logger.info(plan.toString());
+        /*
+        Rail : an ass 2 is 0.75 crafting speed
+        I want to make 0.75 a second.
+        recipe says I make 2 in a half second : only that's actually 2 in (0.5/0.75) = 0.66667 seconds
+        so if I said 3 items a second, that is exactly 1 ass 2. - yes
+        which takes 2 stone - yes
+        which needs 2 steel plates
+            1 steel plate takes 8 seconds in one steel furnace
+            2 steel plates would take 16 seconds in one steel furnace
+            I have 3 seconds, so I need 16/3 = 5.333 furnaces
+            My tool says making STEEL_PLATE with 35.00 x STEEL_FURNACE at 2.00/s
+                what's the 2 per second ?
+         */
 
-        daemon = new Daemon(recipeBook);
-        daemon.addMaker(new Assembler1());
-        plan = daemon.getPlan(ItemType.PRODUCTION_SCIENCE_PACK, 3);
-        this.logger.info(plan.toString());
+//        Plan plan = daemon.getPlan(ItemType.RAIL, 1);
+//        Plan plan = daemon.getPlan(ItemType.INSERTER, 1);
+        // red
+//         Plan plan = daemon.getPlan(ItemType.AUTOMATION_SCIENCE_PACK, 1);
+        // green
+//         Plan plan = daemon.getPlan(ItemType.LOGISTIC_SCIENCE_PACK, 1);
+        // black
+//         Plan plan = daemon.getPlan(ItemType.MILITARY_SCIENCE_PACK, 1);
+        // blue
+//        Plan plan = daemon.getPlan(ItemType.CHEMICAL_SCIENCE_PACK, 1);
+        // purple
+//        Plan plan = daemon.getPlan(ItemType.PRODUCTION_SCIENCE_PACK, 1);
+        // yellow
+        Plan plan = daemon.getPlan(ItemType.UTILITY_SCIENCE_PACK, 1);
+
+//        final Plan plan = daemon.getPlan(ItemType.ROCKET_CONTROL_UNIT, 1);
+//        Plan plan = daemon.getPlan(ItemType.ELECTRONIC_CIRCUIT, 15);
+//        final Plan plan = daemon.getPlan(ItemType.ARTILLERY_SHELL, 0.1666);
+//        Plan plan = daemon.getPlan(ItemType.LOW_DENSITY_STRUCTURE, 1.33);
+        plan.displayToTerminal();
+        System.out.println();
+        plan.summarizeToTerminal();
     }
 
     private void generateRecipeTimings() {
@@ -76,7 +97,7 @@ public class Main {
         }.getType();
         final List<Item> items = gson.fromJson(reader, ITEM_TYPE);
         Collections.sort(items, Comparator.comparing(Item::getId));
-        for (Item item : items) {
+        for (final Item item : items) {
             if (item.getRecipe().getTime() != null) {
                 System.out.println("\"" + item.getItemType().getId() + "\":" + item.getRecipe().getTime() + ",");
             }
@@ -92,7 +113,7 @@ public class Main {
         }.getType();
         final List<Item> items = gson.fromJson(reader, ITEM_TYPE);
         Collections.sort(items, Comparator.comparing(Item::getId));
-        for (Item item : items) {
+        for (final Item item : items) {
             if (item.getRecipe().getYield() != null) {
                 System.out.println("\"" + item.getItemType().getId() + "\":" + item.getRecipe().getYield() + ",");
             }
